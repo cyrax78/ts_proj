@@ -1,0 +1,188 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+library(astsa)
+library(tseries)
+library(forecast)
+library(FinTS)
+```
+
+
+###### Tcehy
+
+```{r}
+tcehy=read.table("C:/tcehy.txt",sep=",",head=TRUE)
+tcehy5=tcehy[,5]
+tcehydata=ts(tcehy5,frequency=6.5*60)
+ts.plot(tcehydata,main="Tcehy data",xlab="days",ylab="tcehy")
+```
+#Read tcehy data and set the frequency as 390min(one day)
+
+
+#Take log and look at its pacf and acf. This series is obviously non-stationary.
+```{r}
+l.tcehydata=log(tcehydata)
+plot(l.tcehydata)
+acf(l.tcehydata)
+pacf(l.tcehydata)
+adf.test(l.tcehydata)
+```
+
+#Take 1st Difference
+```{r}
+d.l.tcehydata=diff(l.tcehydata)
+ts.plot(d.l.tcehydata)
+acf(d.l.tcehydata)
+pacf(d.l.tcehydata)
+adf.test(d.l.tcehydata)
+```
+The differenced series is stationary. The ARIMA model should be Arima(p,1,q)
+
+#Fit arima model on the log series. ARIMA(2,1,0)
+```{r}
+fit1=auto.arima(l.tcehydata,allowdrift=FALSE)
+summary(fit1)
+```
+
+#Examine the residuals
+```{r}
+res1=residuals(fit1)
+plot(res1)
+
+qqnorm(res1)
+qqline(res1,col="red")
+Box.test(res1,type="Ljung-Box") ##0.975 
+```
+residuals are random
+
+#Arch test indicates that the residuals do no need arch/garch fit.
+```{r}
+ArchTest(res1)   ##0.9999
+#Null hypothesis: no ARCH effects
+```
+This model provides an adequate fit to the data.
+
+#Plot the fitted series
+```{r}
+tcehy.fitted=fitted(fit1)
+plot(tcehydata,main="Original Tcehy and Fitted Tcehy")
+lines(exp(tcehy.fitted),col="red")
+legend("topleft",c("Original Tcehy","Fitted Tcehy"),col=c("black","red"),
+       lty=1)
+```
+
+#Compute RMSE
+```{r}
+RMSE1=sqrt(mean(res1^2))
+RMSE1
+```
+
+#Forecast (5 step)
+```{r}
+fore1=forecast(fit1,h=5)
+fore1$mean=exp(fore1$mean)
+fore1$x=exp(fore1$x)
+fore1$lower=exp(fore1$lower)
+fore1$upper=exp(fore1$upper)
+fore1
+plot(fore1$mean)
+```
+
+
+
+
+###### Spy
+
+#Read spy data and set the frequency as 390min(one day)
+```{r}
+spy=read.table("C:/spy.txt",sep=",",head=TRUE)
+spy5=spy[,5]
+spydata=ts(spy5,frequency=6.5*60)
+ts.plot(spydata,main="Spy data",xlab="days",ylab="spy")
+```
+
+#Take log and look at its pacf and acf. This series is obviously non-stationary.
+```{r}
+l.spydata=log(spydata)
+plot(l.spydata)
+acf(l.spydata)
+pacf(l.spydata)
+adf.test(l.spydata)
+```
+
+#Take 1st Difference
+```{r}
+d.l.spydata=diff(l.spydata)
+ts.plot(d.l.spydata)
+acf(d.l.spydata)
+pacf(d.l.spydata)
+adf.test(d.l.spydata)
+```
+The differenced series is stationary. The ARIMA model should be Arima(p,1,q)
+
+#Fit arima model on the log series. ARIMA(3,1,0)
+```{r}
+fit2=auto.arima(l.spydata,allowdrift=FALSE)
+summary(fit2)
+```
+
+#Examine the residuals
+```{r}
+res2=residuals(fit2)
+ts.plot(res2)
+
+qqnorm(res2)
+qqline(res2,col="red")
+Box.test(res2,type="Ljung-Box") ##0.7392 
+```
+residuals are random
+
+#Arch test indicates that the residuals do no need arch/garch fit.
+```{r}
+ArchTest(res2)   ##0.152
+#Null hypothesis: no ARCH effects
+```
+This model provides an adequate fit to the data.
+
+#Plot the fitted series
+```{r}
+spy.fitted=fitted(fit2)
+plot(spydata,main="Original Spy and Fitted Spy")
+lines(exp(spy.fitted),col="red")
+legend("topleft",c("Original Spy","Fitted Spy"),col=c("black","red"),
+       lty=1)
+```
+
+#Compute RMSE
+```{r}
+RMSE2=sqrt(mean(res2^2))
+RMSE2
+```
+
+#Forecast (5 step)
+```{r}
+fore2=forecast(fit2,h=5)
+fore2$mean=exp(fore2$mean)
+fore2$x=exp(fore2$x)
+fore2$lower=exp(fore2$lower)
+fore2$upper=exp(fore2$upper)
+fore2
+plot(fore2$mean)
+```
+
+
+
+
+
+
+
+
+
+
+#dynamic forecast
+
