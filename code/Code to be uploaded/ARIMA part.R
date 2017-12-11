@@ -49,7 +49,7 @@ ggplot(n.tcehydata,aes(tcehy$X.U.FEFF.Date,n.tcehydata))+geom_line()+
 
 acf(n.tcehydata,lag=39,main="ACF of Normalized Tencent Stock",xaxt="n") 
 axis(1,c(0,seq(0.1/39*5,0.1/39*35,0.1/39*5)),c(0,seq(5,35,5)))
-
+adf.test(n.techydata)
 
 ###### Examine seasonality
 
